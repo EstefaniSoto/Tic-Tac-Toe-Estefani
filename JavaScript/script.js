@@ -3,6 +3,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const playerDisplay = document.querySelector('.display-player');
     const resetButton = document.querySelector('#reset');
     const announcer = document.querySelector('.announcer');
+    const RecordsURL = "http://localhost:8080/api/records";
 
     let board = ['', '', '', '', '', '', '', '', ''];
     let currentPlayer = 'X';
@@ -57,16 +58,35 @@ window.addEventListener('DOMContentLoaded', () => {
         announce(TIE);
     }
 
+    const saveRecordOnDB = (player1Name, player2Name, roundStatus) => {
+        const params = {
+            headers: {
+                "content-type": "application/json; charset=UTF-8"
+            },
+            body: JSON.stringify({player1: player1Name, player2: player2Name, winner: roundStatus}),
+            method: "POST"
+        };
+
+        fetch(RecordsURL, params).then((response) => {
+            return response.json();
+        }).catch((err)=>{
+            console.log(err);
+        });
+    }
+
     const announce = (type) => {
         switch(type){
             case PLAYERO_WON:
                 announcer.innerHTML = '¡El jugador <span class="playerO">O</span> es el ganador!';
-                break;
+                saveRecordOnDB(PLAYERX_WON, PLAYERO_WON, currentPlayer === 'X' ? PLAYERX_WON : PLAYERO_WON);
+            break;
             case PLAYERX_WON:
                 announcer.innerHTML = '¡El jugador <span class="playerX">X</span> es el ganador!';
-                break;
+                saveRecordOnDB(PLAYERX_WON, PLAYERO_WON, currentPlayer === 'X' ? PLAYERX_WON : PLAYERO_WON);
+            break;
             case TIE:
                 announcer.innerText = 'Empate';
+                saveRecordOnDB(PLAYERX_WON, PLAYERO_WON, TIE);
         }
         announcer.classList.remove('hide');
     };
